@@ -39,7 +39,6 @@
         .alert-banner.level-today{background:linear-gradient(135deg,#dc3545,#ff6b6b);color:#fff}
         .alert-banner.level-tomorrow{background:linear-gradient(135deg,#ff9a9e,#fecfef);color:#333}
         .alert-banner.level-soon{background:linear-gradient(135deg,#a1c4fd,#c2e9fb);color:#333}
-        .alert-banner.level-reminder{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff}
         .alert-banner .close-alert{background:rgba(255,255,255,.3);border:none;color:inherit;border-radius:50%;width:22px;height:22px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
         .sync-banner{background:var(--primary);color:#fff;padding:10px 20px;text-align:center;font-size:.85em;font-weight:600;flex-shrink:0;display:none;align-items:center;justify-content:center;gap:8px}
         .sync-banner.visible{display:flex}
@@ -304,7 +303,7 @@
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
     <script src='https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/locales/ja.global.min.js'></script>
     <script>
-    var FIREBASE_CONFIG={apiKey:"AIzaSyCXQhwpBAVOEEZm2TNHUTsCIp5dGXxmMjs",authDomain:"task2-2b427.firebaseapp.com",projectId:"task2-2b427",storageBucket:"task2-2b427.firebasestorage.app",messagingSenderId:"657993063379",appId:"1:657993063379:web:8dd7b407b114aa6052ad26"};
+    var FIREBASE_CONFIG={apiKey:"AIzaSyB2jrtwdRPW6tnn4HmvbH5w_dQZE_PNcac",authDomain:"houkoku-kanri.firebaseapp.com",projectId:"houkoku-kanri",storageBucket:"houkoku-kanri.firebasestorage.app",messagingSenderId:"596818230379",appId:"1:596818230379:web:f56d71f4dc2c72f0ff452e"};
     var auth=null,db=null,isFirebaseReady=false;
     try{firebase.initializeApp(FIREBASE_CONFIG);auth=firebase.auth();db=firebase.firestore();isFirebaseReady=true;}catch(e){console.warn('Firebase init failed:',e);}
     var tasks=[],currentFilter='all',currentScreen='home';
@@ -445,7 +444,6 @@
         var now=new Date();now.setHours(0,0,0,0);var tmr=new Date(now);tmr.setDate(tmr.getDate()+1);
         var u=tasks.filter(function(t){if(t.completed||!t.dueDate)return false;var d=new Date(t.dueDate);d.setHours(0,0,0,0);return d<=tmr;}).sort(function(a,b){return new Date(a.dueDate)-new Date(b.dueDate);});
         document.getElementById('urgentTasksList').innerHTML=u.length?u.map(function(t){return homeTaskItem(t);}).join(''):'<div class="empty-message">\u2705 緊急の未報告はありません</div>';
-        // 最近の報告履歴
         var recent=tasks.filter(function(t){return t.completed&&t.completedAt;}).sort(function(a,b){return new Date(b.completedAt)-new Date(a.completedAt);}).slice(0,5);
         document.getElementById('recentReportsList').innerHTML=recent.length?recent.map(function(t){
             var dt=new Date(t.completedAt);var timeStr=dt.getMonth()+1+'/'+dt.getDate()+' '+String(dt.getHours()).padStart(2,'0')+':'+String(dt.getMinutes()).padStart(2,'0');
@@ -516,7 +514,6 @@
             auth.onAuthStateChanged(function(user){
                 currentUser=user;
                 if(user){
-                    // ユーザー名の取得
                     if(user.displayName){currentUserName=user.displayName;}
                     else{db.collection('users').doc(user.uid).get().then(function(doc){if(doc.exists&&doc.data().displayName)currentUserName=doc.data().displayName;}).catch(function(){});}
                     var settled=false;var tid=setTimeout(function(){if(!settled){settled=true;hideLoading();}},5000);
