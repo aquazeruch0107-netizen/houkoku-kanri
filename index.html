@@ -1,361 +1,8 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>報告アプリ</title>
-    <link rel="apple-touch-icon" sizes="180x180" href="icon-512.png">
-    <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#2e7d32">
-    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css' rel='stylesheet' />
-    <style>
-        :root{--primary:#2e7d32;--primary-light:#e8f5e9;--primary-dark:#1b5e20;--bg:#f7f8fa;--surface:#fff;--text:#2c3e50;--text-sub:#6c757d;--border:#e2e6ea;--danger:#dc3545;--warning:#ffc107;--success:#28a745;--holiday:#e91e63;--sat-bg:#e3f2fd;--sun-bg:#fce4ec;--today-bg:#fff3cd;--sidebar-w:200px}
-        *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-        html,body{height:100%;overflow:hidden}
-        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text)}
-        .app-layout{display:flex;height:100vh;height:100dvh;width:100%;max-width:1600px;margin:0 auto}
-        .sidebar{display:none;width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);flex-direction:column;flex-shrink:0;overflow-y:auto}
-        .sidebar-brand{padding:20px 16px;font-size:1.05em;font-weight:800;color:var(--primary);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
-        .sidebar-nav{padding:10px;flex:1;display:flex;flex-direction:column;gap:3px}
-        .sidebar-btn{display:flex;align-items:center;gap:10px;padding:10px 14px;border:none;background:transparent;border-radius:8px;cursor:pointer;font-size:.85em;font-weight:600;color:var(--text-sub);transition:all .2s;text-align:left;width:100%}
-        .sidebar-btn:hover{background:var(--bg);color:var(--text)}
-        .sidebar-btn.active{background:var(--primary-light);color:var(--primary)}
-        .sidebar-btn .nav-icon{font-size:1.2em;width:24px;text-align:center}
-        .sidebar-group-section{padding:10px;border-top:1px solid var(--border)}
-        .sidebar-group-label{font-size:.7em;font-weight:700;color:var(--text-sub);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
-        .sidebar-group-list{display:flex;flex-direction:column;gap:3px;margin-bottom:8px}
-        .group-chip{display:flex;align-items:center;gap:6px;padding:8px 12px;border:1.5px solid var(--border);background:transparent;border-radius:8px;cursor:pointer;font-size:.8em;font-weight:600;color:var(--text-sub);transition:all .2s;width:100%;text-align:left}
-        .group-chip:hover{border-color:var(--primary);color:var(--primary)}
-        .group-chip.active{background:var(--primary);color:#fff;border-color:var(--primary)}
-        .add-group-btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:8px;border:1.5px dashed var(--border);background:transparent;border-radius:8px;cursor:pointer;font-size:.8em;font-weight:600;color:var(--text-sub);transition:all .2s;width:100%}
-        .add-group-btn:hover{border-color:var(--primary);color:var(--primary)}
-        .sidebar-footer{padding:12px;border-top:1px solid var(--border)}
-        .sidebar-user-info{font-size:.75em;color:var(--text-sub);margin-bottom:8px;text-align:center;word-break:break-all}
-        .sidebar-auth-btn{display:flex;align-items:center;gap:6px;padding:8px 12px;border:1.5px solid var(--border);background:transparent;border-radius:8px;cursor:pointer;font-size:.75em;font-weight:600;color:var(--text-sub);transition:all .2s;width:100%;justify-content:center}
-        .sidebar-auth-btn:hover{border-color:var(--primary);color:var(--primary)}
-        .sidebar-auth-btn.logged-in{border-color:var(--success);color:var(--success);background:#f0fff4}
-        .main-area{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
-        .mobile-header{display:flex;background:var(--primary);color:#fff;padding:14px 20px;padding-top:calc(14px + env(safe-area-inset-top));flex-shrink:0;text-align:center;align-items:center;justify-content:center;position:relative}
-        .mobile-header h1{font-size:1.15em;font-weight:700}
-        .mobile-header-btn{position:absolute;top:calc(50% + env(safe-area-inset-top) / 2);transform:translateY(-50%);font-size:1.2em;opacity:.9;cursor:pointer;padding:4px 8px;border-radius:6px;background:rgba(255,255,255,.2);border:none;color:#fff;line-height:1}
-        .mobile-header-btn:hover{background:rgba(255,255,255,.3)}
-        .mobile-header-btn.right{right:12px;font-size:.7em}
-        .mobile-group-bar{display:flex;background:var(--surface);border-bottom:1px solid var(--border);padding:8px 12px;gap:6px;overflow-x:auto;flex-shrink:0;-webkit-overflow-scrolling:touch}
-        .mobile-group-bar::-webkit-scrollbar{display:none}
-        .alert-banner{padding:10px 20px;text-align:center;font-size:.85em;font-weight:600;flex-shrink:0;display:none;cursor:pointer;align-items:center;justify-content:center;gap:8px}
-        .alert-banner.visible{display:flex}
-        .alert-banner.level-today{background:linear-gradient(135deg,#dc3545,#ff6b6b);color:#fff}
-        .alert-banner.level-tomorrow{background:linear-gradient(135deg,#ff9a9e,#fecfef);color:#333}
-        .alert-banner.level-soon{background:linear-gradient(135deg,#a1c4fd,#c2e9fb);color:#333}
-        .alert-banner.level-reminder{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff}
-        .alert-banner.level-check{background:linear-gradient(135deg,var(--primary),#4caf50);color:#fff}
-        .alert-banner .close-alert{background:rgba(255,255,255,.3);border:none;color:inherit;border-radius:50%;width:22px;height:22px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-        .sync-banner{background:var(--primary);color:#fff;padding:10px 20px;text-align:center;font-size:.85em;font-weight:600;flex-shrink:0;display:none;align-items:center;justify-content:center;gap:8px}
-        .sync-banner.visible{display:flex}
-        .sync-banner .close-sync{background:rgba(255,255,255,.3);border:none;color:#fff;border-radius:50%;width:22px;height:22px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-        .screen{display:none;flex:1;overflow-y:auto;min-height:0;-webkit-overflow-scrolling:touch}
-        .screen.active{display:flex;flex-direction:column}
-        .home-content{padding:16px;flex:1;overflow-y:auto}
-        .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
-        .stat-item{color:#fff;padding:14px 6px;border-radius:12px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.08)}
-        .stat-item.pending{background:linear-gradient(135deg,#ff9a9e,#fad0c4)}
-        .stat-item.completed{background:linear-gradient(135deg,#84fab0,#8fd3f4)}
-        .stat-item.total{background:linear-gradient(135deg,#a1c4fd,#c2e9fb)}
-        .stat-item strong{font-size:1.6em;display:block;line-height:1.2}
-        .stat-item span{font-size:.75em;opacity:.9}
-        .home-section{background:var(--bg);border-radius:12px;padding:14px;margin-bottom:12px}
-        .home-section h3{color:var(--text);margin-bottom:10px;font-size:.95em}
-        .report-status-item{background:var(--surface);padding:12px;border-radius:8px;margin-bottom:8px;border-left:4px solid var(--primary)}
-        .report-status-item:last-child{margin-bottom:0}
-        .report-status-title{font-weight:600;font-size:.9em;color:var(--text);margin-bottom:6px}
-        .report-status-meta{font-size:.75em;color:var(--text-sub);margin-bottom:6px}
-        .check-members{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
-        .check-member-done{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:.7em;font-weight:600;background:var(--primary-light);color:var(--primary)}
-        .check-none{font-size:.7em;color:#ccc;font-style:italic}
-        .today-task-item{background:var(--surface);padding:10px 12px;border-radius:8px;margin-bottom:6px;border-left:4px solid var(--primary);display:flex;justify-content:space-between;align-items:center;gap:8px}
-        .today-task-item:last-child{margin-bottom:0}
-        .today-task-item.overdue{border-left-color:var(--danger);background:#fff5f5}
-        .today-task-item.tomorrow{border-left-color:var(--warning);background:#fffbf0}
-        .today-task-title{font-weight:600;font-size:.9em;color:var(--text)}
-        .today-task-info{display:flex;align-items:center;gap:6px;flex-shrink:0}
-        .empty-message{text-align:center;color:var(--text-sub);padding:16px;font-size:.85em}
-        .list-controls{padding:10px 16px;background:var(--bg);border-bottom:1px solid var(--border);display:flex;gap:6px;flex-wrap:wrap;align-items:center;flex-shrink:0}
-        .btn{padding:8px 14px;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;transition:all .2s;white-space:nowrap;-webkit-appearance:none}
-        .btn-primary{background:var(--primary);color:#fff}
-        .btn-primary:hover{background:var(--primary-dark)}
-        .btn-secondary{background:var(--text-sub);color:#fff}
-        .btn-danger{background:var(--danger);color:#fff}
-        .btn-outline{background:transparent;color:var(--primary);border:1.5px solid var(--primary)}
-        .filter-btn{background:var(--surface);color:var(--text);border:1.5px solid var(--border);padding:6px 10px;font-size:12px}
-        .filter-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
-        .list-content{padding:16px;flex:1;overflow-y:auto}
-        .task-item{background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;display:flex;align-items:flex-start;gap:10px}
-        .task-item.overdue{border-color:var(--danger);border-width:2px;background:#fff5f5}
-        .task-item.tomorrow{border-color:var(--warning);border-width:2px;background:#fffbf0}
-        .task-checkbox{width:20px;height:20px;cursor:pointer;accent-color:var(--primary);flex-shrink:0;margin-top:2px}
-        .task-content{flex:1;min-width:0}
-        .task-title{font-size:.95em;font-weight:600;margin-bottom:3px;word-break:break-word}
-        .task-item.my-completed .task-title{text-decoration:line-through;color:var(--text-sub)}
-        .task-meta{display:flex;gap:6px;font-size:.75em;color:var(--text-sub);flex-wrap:wrap;align-items:center;margin-bottom:4px}
-        .priority-badge{padding:2px 7px;border-radius:20px;font-size:.7em;font-weight:600}
-        .priority-high{background:var(--danger);color:#fff}
-        .priority-medium{background:var(--warning);color:#000}
-        .priority-low{background:var(--success);color:#fff}
-        .reporter-badge{padding:2px 7px;border-radius:20px;font-size:.7em;font-weight:600;background:var(--primary-light);color:var(--primary)}
-        .reminder-badge{padding:2px 7px;border-radius:20px;font-size:.7em;font-weight:600;background:#ede7f6;color:#5e35b1}
-        .task-actions{display:flex;gap:4px;flex-shrink:0;margin-top:2px}
-        .task-actions .btn{padding:6px 10px;font-size:11px}
-        .calendar-content{padding:8px;flex:1;overflow:hidden;display:flex;flex-direction:column}
-        #calendar{background:var(--surface);flex:1;min-height:0}
-        .fc .fc-day-sat{background-color:var(--sat-bg)!important}
-        .fc .fc-day-sun{background-color:var(--sun-bg)!important}
-        .fc .fc-day-today{background-color:var(--today-bg)!important}
-        .fc .fc-holiday{background-color:var(--sun-bg)!important}
-        .fc .fc-toolbar .fc-button-group:not(.fc-prev-button):not(.fc-next-button),.fc .fc-today-button{display:none!important}
-        .fc .fc-toolbar-title{white-space:nowrap!important;font-size:1em!important}
-        .fc .fc-prev-button,.fc .fc-next-button{background:var(--primary)!important;border:none!important;border-radius:8px!important;padding:5px 10px!important;font-size:.85em!important}
-        .fc .fc-daygrid-day-frame{min-height:80px!important;max-height:80px!important;overflow:hidden!important;position:relative!important}
-        .fc .fc-daygrid-day-top{position:relative!important;height:100%!important}
-        .fc .fc-daygrid-day-number{position:absolute!important;top:2px!important;right:4px!important;padding:0!important;font-size:.8em!important;font-weight:700!important;z-index:2!important;line-height:1!important}
-        .fc-holiday-name{position:absolute!important;bottom:2px!important;left:3px!important;right:3px!important;font-size:.55em!important;color:var(--holiday)!important;line-height:1.1!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;z-index:1!important;pointer-events:none!important}
-        .fc .fc-daygrid-day-events{position:absolute!important;top:18px!important;left:2px!important;right:2px!important;bottom:14px!important;max-height:none!important;overflow:hidden!important}
-        .fc .fc-daygrid-event{font-size:.6em!important;padding:1px 2px!important;margin:1px 0!important;border-radius:2px!important;line-height:1.2!important}
-        .fc .fc-daygrid-day-more{font-size:.55em!important;color:var(--primary)!important;font-weight:700!important;padding:0 2px!important;cursor:pointer!important}
-        .bottom-nav{display:flex;background:var(--surface);border-top:1px solid var(--border);flex-shrink:0;padding-bottom:calc(env(safe-area-inset-bottom) + 6px);padding-top:6px}
-        .nav-btn{flex:1;padding:8px 0;background:transparent;border:none;cursor:pointer;font-size:11px;font-weight:600;color:var(--text-sub);display:flex;flex-direction:column;align-items:center;gap:2px;min-height:52px;justify-content:center}
-        .nav-btn .nav-icon{font-size:1.4em;line-height:1}
-        .nav-btn.active{color:var(--primary);background:var(--primary-light);border-radius:8px;margin:0 4px}
-        .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.4);z-index:1000;align-items:center;justify-content:center;padding:20px}
-        .modal.active{display:flex}
-        .modal-content{background:var(--surface);border-radius:16px;width:100%;max-width:480px;box-shadow:0 10px 40px rgba(0,0,0,.2);max-height:90vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
-        .modal-header{padding:18px 20px 0;font-size:1.2em;font-weight:700;color:var(--text);display:flex;justify-content:space-between;align-items:center;gap:10px}
-        .modal-header .date-badge{font-size:.55em;background:var(--primary);color:#fff;padding:4px 10px;border-radius:20px;font-weight:500}
-        .modal-close-btn{background:transparent;border:none;font-size:1.5em;cursor:pointer;color:var(--text-sub);padding:0;line-height:1}
-        .modal-body{padding:16px 20px 20px}
-        .form-group{margin-bottom:14px;width:100%}
-        .form-group label{display:block;margin-bottom:5px;font-weight:600;color:var(--text);font-size:.85em}
-        .form-control{display:block;width:100%;height:46px;padding:0 14px;border:1.5px solid var(--border);border-radius:10px;font-size:16px;font-family:inherit;background:#fafbfc;color:var(--text);-webkit-appearance:none;appearance:none;outline:none;transition:border-color .2s,background .2s;line-height:44px}
-        .form-control:focus{border-color:var(--primary);background:#fff}
-        select.form-control{line-height:normal;padding:12px 36px 12px 14px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236c757d' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
-        input[type="date"].form-control,input[type="time"].form-control{-webkit-appearance:none;min-height:46px;line-height:44px}
-        .form-control::placeholder{line-height:44px}
-        .form-row{display:flex;gap:10px;width:100%}
-        .form-row .form-group{flex:1;min-width:0}
-        .modal-actions{display:flex;gap:10px;margin-top:16px;padding-top:14px;border-top:1px solid var(--border)}
-        .modal-actions .btn{flex:1;padding:12px;font-size:15px}
-        .day-task-list{padding:0 20px}
-        .day-task-item{background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:12px;margin-bottom:6px;cursor:pointer;display:flex;align-items:center;gap:8px}
-        .day-task-item:hover{background:var(--primary-light);border-color:var(--primary)}
-        .day-task-item.overdue{border-color:var(--danger);background:#fff5f5}
-        .day-task-item.my-completed{opacity:.6}
-        .day-task-item.my-completed .day-task-title{text-decoration:line-through;color:var(--text-sub)}
-        .day-task-time{font-size:.85em;font-weight:700;color:var(--primary);min-width:45px;flex-shrink:0}
-        .day-task-title{flex:1;font-weight:600;color:var(--text);word-break:break-word;font-size:.9em}
-        .day-task-empty{text-align:center;padding:30px 16px;color:var(--text-sub)}
-        .day-task-empty .empty-icon{font-size:2em;margin-bottom:6px;opacity:.5}
-        .day-task-footer{padding:12px 20px 20px;display:flex;gap:8px}
-        .day-task-footer .btn{flex:1;padding:12px;font-size:14px}
-        .auth-tabs{display:flex;margin-bottom:16px;border-bottom:2px solid var(--border)}
-        .auth-tab{flex:1;padding:10px;background:none;border:none;font-size:14px;font-weight:600;color:var(--text-sub);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s}
-        .auth-tab.active{color:var(--primary);border-bottom-color:var(--primary)}
-        .auth-error{background:#fff5f5;color:var(--danger);padding:10px;border-radius:8px;font-size:.85em;margin-bottom:12px;display:none;text-align:center}
-        .auth-error.visible{display:block}
-        .auth-note{font-size:.75em;color:#adb5bd;text-align:center;margin-top:12px}
-        .loading-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,.85);z-index:2000;align-items:center;justify-content:center;flex-direction:column;gap:12px}
-        .loading-overlay.visible{display:flex}
-        .spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite}
-        @keyframes spin{to{transform:rotate(360deg)}}
-        .loading-text{font-size:.9em;color:var(--text-sub);font-weight:600}
-        @media(min-width:769px){
-            .sidebar{display:flex}
-            .mobile-header{display:none}
-            .mobile-group-bar{display:none}
-            .bottom-nav{display:none}
-            .home-content{padding:32px 40px}
-            .stats{gap:16px;margin-bottom:24px}
-            .stat-item{padding:24px 12px;border-radius:16px}
-            .stat-item strong{font-size:2.2em}
-            .stat-item span{font-size:.85em}
-            .home-section{padding:20px;margin-bottom:16px;border-radius:16px}
-            .home-section h3{font-size:1.05em;margin-bottom:14px}
-            .today-task-item{padding:14px 18px;border-radius:10px;margin-bottom:8px}
-            .today-task-title{font-size:1em}
-            .list-controls{padding:16px 24px;gap:10px}
-            .btn{padding:10px 18px;font-size:14px}
-            .filter-btn{padding:8px 14px;font-size:13px}
-            .list-content{padding:24px 32px}
-            .task-item{padding:16px;border-radius:12px;margin-bottom:10px}
-            .task-title{font-size:1em}
-            .task-meta{font-size:.8em}
-            .task-actions .btn{padding:8px 14px;font-size:12px}
-            .calendar-content{padding:20px}
-            .fc .fc-daygrid-day-frame{min-height:120px!important;max-height:120px!important}
-            .fc .fc-toolbar-title{font-size:1.4em!important}
-            .fc .fc-daygrid-day-events{top:24px!important;bottom:18px!important}
-            .fc-holiday-name{font-size:.65em!important;bottom:4px!important}
-            .fc .fc-daygrid-day-number{font-size:.9em!important;top:4px!important}
-            .fc .fc-daygrid-event{font-size:.7em!important;padding:2px 4px!important}
-            .fc .fc-daygrid-day-more{font-size:.65em!important}
-            .modal-content{max-width:520px}
-            .modal-actions .btn{flex:none;padding:12px 28px}
-            .day-task-footer .btn{flex:none}
-        }
-        @media(min-width:1200px){
-            :root{--sidebar-w:220px}
-            .home-content{padding:40px 60px;max-width:1000px}
-            .stats{gap:20px}
-            .stat-item{padding:30px 16px}
-            .stat-item strong{font-size:2.5em}
-            .list-content{padding:32px 48px;max-width:1000px}
-            .calendar-content{padding:28px}
-            .fc .fc-daygrid-day-frame{min-height:140px!important;max-height:140px!important}
-            .fc .fc-toolbar-title{font-size:1.6em!important}
-            .fc .fc-daygrid-event{font-size:.75em!important}
-            .fc .fc-daygrid-day-more{font-size:.7em!important}
-        }
-    </style>
-</head>
-<body>
-    <div class="app-layout">
-        <aside class="sidebar">
-            <div class="sidebar-brand">📊 報告アプリ</div>
-            <nav class="sidebar-nav">
-                <button class="sidebar-btn active" data-screen="home" onclick="switchScreen('home')"><span class="nav-icon">🏠</span><span>ホーム</span></button>
-                <button class="sidebar-btn" data-screen="list" onclick="switchScreen('list')"><span class="nav-icon">📝</span><span>報告一覧</span></button>
-                <button class="sidebar-btn" data-screen="calendar" onclick="switchScreen('calendar')"><span class="nav-icon">📅</span><span>カレンダー</span></button>
-            </nav>
-            <div class="sidebar-group-section">
-                <div class="sidebar-group-label">グループ</div>
-                <div class="sidebar-group-list" id="sidebarGroupList"></div>
-                <button class="add-group-btn" onclick="openGroupModal()">+ グループを追加</button>
-            </div>
-            <div class="sidebar-footer">
-                <div class="sidebar-user-info" id="sidebarUserInfo"></div>
-                <button class="sidebar-auth-btn" id="sidebarAuthBtn" onclick="openAuthModal()">🔒 ログイン</button>
-            </div>
-        </aside>
-        <div class="main-area">
-            <div class="mobile-header">
-                <h1 id="mobileTitle">📊 報告アプリ</h1>
-                <button class="mobile-header-btn right" id="mobileAuthBtn" onclick="openAuthModal()">🔒 ログイン</button>
-            </div>
-            <div class="mobile-group-bar" id="mobileGroupBar"></div>
-            <div class="alert-banner" id="alertBanner"><span id="alertBannerText"></span><button class="close-alert" onclick="dismissAlert()">&times;</button></div>
-            <div class="sync-banner" id="syncBanner"><span>☁️ チーム共有：データは全員で同期されます</span><button class="close-sync" onclick="dismissSyncBanner()">&times;</button></div>
-            <div class="screen active" id="homeScreen">
-                <div class="home-content">
-                    <div class="stats">
-                        <div class="stat-item pending"><strong id="pendingCount">0</strong><span>未報告</span></div>
-                        <div class="stat-item completed"><strong id="completedCount">0</strong><span>報告済</span></div>
-                        <div class="stat-item total"><strong id="totalCount">0</strong><span>合計</span></div>
-                    </div>
-                    <div class="home-section"><h3>📋 報告状況（チーム全体）</h3><div id="teamStatusList"></div></div>
-                    <div class="home-section"><h3>⚠️ 期限切れ・明日までの未報告</h3><div id="urgentTasksList"></div></div>
-                </div>
-            </div>
-            <div class="screen" id="listScreen">
-                <div class="list-controls">
-                    <button class="btn btn-primary" onclick="openAddModal()">+ 報告を追加</button>
-                    <button class="btn filter-btn active" data-filter="all" onclick="setFilter('all')">すべて</button>
-                    <button class="btn filter-btn" data-filter="pending" onclick="setFilter('pending')">未報告</button>
-                    <button class="btn filter-btn" data-filter="completed" onclick="setFilter('completed')">報告済</button>
-                </div>
-                <div class="list-content"><div id="taskList"></div></div>
-            </div>
-            <div class="screen" id="calendarScreen">
-                <div class="calendar-content"><div id="calendar"></div></div>
-            </div>
-            <nav class="bottom-nav">
-                <button class="nav-btn active" data-screen="home" onclick="switchScreen('home')"><span class="nav-icon">🏠</span><span>ホーム</span></button>
-                <button class="nav-btn" data-screen="list" onclick="switchScreen('list')"><span class="nav-icon">📝</span><span>報告一覧</span></button>
-                <button class="nav-btn" data-screen="calendar" onclick="switchScreen('calendar')"><span class="nav-icon">📅</span><span>カレンダー</span></button>
-            </nav>
-        </div>
-    </div>
-    <!-- タスクモーダル -->
-    <div class="modal" id="taskModal">
-        <div class="modal-content">
-            <div class="modal-header"><span id="modalTitle">報告を追加</span><button class="modal-close-btn" onclick="closeModal('taskModal')">&times;</button></div>
-            <div class="modal-body">
-                <form id="taskForm">
-                    <input type="hidden" id="taskId">
-                    <div class="form-group"><label for="taskTitle">報告内容 *</label><input type="text" id="taskTitle" class="form-control" required placeholder="報告内容を入力"></div>
-                    <div class="form-row">
-                        <div class="form-group"><label for="taskDueDate">期限日</label><input type="date" id="taskDueDate" class="form-control"></div>
-                        <div class="form-group"><label for="taskDueTime">期限時間</label><input type="time" id="taskDueTime" class="form-control"></div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group"><label for="taskPriority">優先度</label><select id="taskPriority" class="form-control"><option value="low">低</option><option value="medium" selected>中</option><option value="high">高</option></select></div>
-                        <div class="form-group"><label for="taskReminder">🔔 リマインダー</label><select id="taskReminder" class="form-control"><option value="">なし</option><option value="same_0900">当日 9:00</option><option value="before_1h">1時間前</option><option value="before_30m">30分前</option><option value="prev_2100">前日 21:00</option></select></div>
-                    </div>
-                    <div class="modal-actions"><button type="button" class="btn btn-secondary" onclick="closeModal('taskModal')">キャンセル</button><button type="submit" class="btn btn-primary">保存</button></div>
-                </form>
-            </div>
-        </div>
-    </div>
-    <!-- 日別タスクモーダル -->
-    <div class="modal" id="dayTasksModal">
-        <div class="modal-content">
-            <div class="modal-header"><span id="dayTasksTitle">📅 報告一覧</span><button class="modal-close-btn" onclick="closeModal('dayTasksModal')">&times;</button></div>
-            <div style="padding:10px 20px 0;color:var(--text-sub);font-size:.85em;" id="dayTasksDateLabel"></div>
-            <div class="day-task-list" id="dayTasksList" style="margin-top:10px;"></div>
-            <div class="day-task-footer"><button class="btn btn-primary" onclick="addTaskForDay()">+ 報告を追加</button></div>
-        </div>
-    </div>
-    <!-- グループ作成モーダル -->
-    <div class="modal" id="groupModal">
-        <div class="modal-content">
-            <div class="modal-header"><span>グループを追加</span><button class="modal-close-btn" onclick="closeModal('groupModal')">&times;</button></div>
-            <div class="modal-body">
-                <form id="groupForm">
-                    <div class="form-group"><label for="groupName">グループ名 *</label><input type="text" id="groupName" class="form-control" required placeholder="例: 営業部、開発チーム"></div>
-                    <div class="modal-actions"><button type="button" class="btn btn-secondary" onclick="closeModal('groupModal')">キャンセル</button><button type="submit" class="btn btn-primary">作成</button></div>
-                </form>
-            </div>
-        </div>
-    </div>
-    <!-- 認証モーダル -->
-    <div class="modal" id="authModal">
-        <div class="modal-content">
-            <div class="modal-header"><span id="authModalTitle">ログイン</span><button class="modal-close-btn" onclick="closeModal('authModal')">&times;</button></div>
-            <div class="modal-body">
-                <div class="auth-tabs" id="authTabs">
-                    <button class="auth-tab active" onclick="switchAuthTab('login')">ログイン</button>
-                    <button class="auth-tab" onclick="switchAuthTab('register')">新規登録</button>
-                </div>
-                <div class="auth-error" id="authError"></div>
-                <form id="authForm">
-                    <div class="form-group" id="displayNameGroup" style="display:none"><label for="authDisplayName">表示名 *</label><input type="text" id="authDisplayName" class="form-control" placeholder="例: 山田太郎"></div>
-                    <div class="form-group"><label for="authEmail">メールアドレス</label><input type="email" id="authEmail" class="form-control" required placeholder="example@mail.com"></div>
-                    <div class="form-group"><label for="authPassword">パスワード</label><input type="password" id="authPassword" class="form-control" required placeholder="6文字以上" minlength="6"></div>
-                    <div class="modal-actions"><button type="submit" class="btn btn-primary" id="authSubmitBtn">ログイン</button></div>
-                </form>
-                <div class="auth-note" id="authNote">ログインするとデータがチーム全員で同期されます</div>
-                <div id="logoutSection" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--border);text-align:center;">
-                    <p style="font-size:.85em;color:var(--text-sub);margin-bottom:10px;" id="loggedInEmail"></p>
-                    <button class="btn btn-danger" onclick="doLogout()" style="width:100%">ログアウト</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="loading-overlay" id="loadingOverlay"><div class="spinner"></div><div class="loading-text" id="loadingText">同期中...</div></div>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
-    <script src='https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/locales/ja.global.min.js'></script>
     <script>
     var FIREBASE_CONFIG={apiKey:"AIzaSyB2jrtwdRPW6tnn4HmvbH5w_dQZE_PNcac",authDomain:"houkoku-kanri.firebaseapp.com",projectId:"houkoku-kanri",storageBucket:"houkoku-kanri.firebasestorage.app",messagingSenderId:"596818230379",appId:"1:596818230379:web:f56d71f4dc2c72f0ff452e"};
     var auth=null,db=null,isFirebaseReady=false;
     try{firebase.initializeApp(FIREBASE_CONFIG);auth=firebase.auth();db=firebase.firestore();isFirebaseReady=true;}catch(e){console.warn('Firebase init failed:',e);}
 
-    // =============================================
-    // データ構造
-    // groups/{groupId}              ← グループ情報
-    // reports/{groupId}/items/data  ← グループ別報告項目
-    // users/{uid}                   ← プロフィール＋個人チェック
-    // =============================================
     var tasks=[],myChecks={},teamMembers={},allUserChecks={},groups=[];
     var currentGroupId='',currentFilter='all',currentScreen='home';
     var selectedDayDate=null,calendar,currentAuthTab='login';
@@ -363,7 +10,8 @@
     var firestoreUnsubscribe=null,checksUnsubscribe=null,membersUnsubscribe=null,groupsUnsubscribe=null;
     var isSyncingFromFirestore=false;
     var reminderCheckInterval=null;
-    var lastKnownChecks={}; // チェック通知用の前回スナップショット
+    var lastKnownChecks={};
+    var initialLoadDone=false; // Firestore初回読み込み完了フラグ
     window._presetTime=null;
 
     function fmt(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
@@ -371,7 +19,6 @@
     function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
     function isMyCompleted(taskId){return !!myChecks[taskId];}
 
-    // 祝日計算
     var holidaysCache={};
     function getBaseHolidays(year){
         var h={};h[year+'-01-01']='元日';
@@ -394,21 +41,34 @@
         return holidaysCache;
     }
 
-    // LocalStorage
-    function saveTasksLocal(){localStorage.setItem('reports_'+currentGroupId,JSON.stringify(tasks));}
-    function loadTasksLocal(){var s=localStorage.getItem('reports_'+currentGroupId);if(s)tasks=JSON.parse(s);else tasks=[];}
+    // =============================================
+    // ✅ LocalStorage（安全な読み書き）
+    // =============================================
+    function saveTasksLocal(){
+        if(currentGroupId)localStorage.setItem('reports_'+currentGroupId,JSON.stringify(tasks));
+    }
+    function loadTasksLocal(){
+        if(!currentGroupId){tasks=[];return;}
+        var s=localStorage.getItem('reports_'+currentGroupId);
+        if(s){try{tasks=JSON.parse(s);}catch(e){tasks=[];}}
+        else{tasks=[];}
+    }
     function saveChecksLocal(){if(currentUser)localStorage.setItem('checks_'+currentUser.uid,JSON.stringify(myChecks));}
-    function loadChecksLocal(){if(currentUser){var s=localStorage.getItem('checks_'+currentUser.uid);if(s)myChecks=JSON.parse(s);else myChecks={};}}
+    function loadChecksLocal(){if(currentUser){var s=localStorage.getItem('checks_'+currentUser.uid);if(s){try{myChecks=JSON.parse(s);}catch(e){myChecks={};}}else{myChecks={};}}}
 
+    // =============================================
     // Firestore: グループ
+    // =============================================
     function startGroupsListener(){
         if(!db)return;if(groupsUnsubscribe)groupsUnsubscribe();
         groupsUnsubscribe=db.collection('groups').orderBy('createdAt').onSnapshot(function(snapshot){
             groups=[];snapshot.forEach(function(doc){groups.push(Object.assign({id:doc.id},doc.data()));});
-            if(!currentGroupId&&groups.length>0)currentGroupId=groups[0].id;
+            if(!currentGroupId&&groups.length>0){
+                currentGroupId=groups[0].id;
+                loadTasksLocal(); // グループ決定後にローカル読み込み
+                renderAll();
+            }
             renderGroupUI();
-            // グループ切替時にタスクリスナーを再設定
-            if(currentGroupId&&currentUser){stopFirestoreListener();startFirestoreListener();loadTasksLocal();renderAll();}
         },function(err){console.error('Groups listener error:',err);});
     }
     function stopGroupsListener(){if(groupsUnsubscribe){groupsUnsubscribe();groupsUnsubscribe=null;}}
@@ -417,21 +77,40 @@
         return db.collection('groups').add({name:name,createdBy:currentUser.uid,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
     }
 
-    // Firestore: タスク（グループ別）
+    // =============================================
+    // ✅ Firestore: タスク（初回読み込み保護付き）
+    // =============================================
     function saveToFirestore(){
         if(!currentUser||!db||!currentGroupId)return Promise.resolve();
         return db.collection('reports').doc(currentGroupId).collection('items').doc('data').set({tasks:tasks,updatedAt:firebase.firestore.FieldValue.serverTimestamp()}).catch(function(e){console.error('Firestore save error:',e);});
     }
     function startFirestoreListener(){
-        if(!currentUser||!db||!currentGroupId)return;if(firestoreUnsubscribe)firestoreUnsubscribe();
+        if(!currentUser||!db||!currentGroupId)return;
+        if(firestoreUnsubscribe)firestoreUnsubscribe();
+        initialLoadDone=false;
         firestoreUnsubscribe=db.collection('reports').doc(currentGroupId).collection('items').doc('data').onSnapshot(function(doc){
-            if(doc.exists&&doc.data()&&Array.isArray(doc.data().tasks)){isSyncingFromFirestore=true;tasks=doc.data().tasks;saveTasksLocal();renderAll();isSyncingFromFirestore=false;}
-            else{tasks=[];saveTasksLocal();renderAll();}
-        },function(err){console.error('Firestore listener error:',err);});
+            if(doc.exists&&doc.data()&&Array.isArray(doc.data().tasks)){
+                isSyncingFromFirestore=true;
+                tasks=doc.data().tasks;
+                saveTasksLocal();
+                renderAll();
+                isSyncingFromFirestore=false;
+            }else if(!initialLoadDone){
+                // Firestoreにデータがない初回 → ローカルデータを維持してマイグレーション
+                // tasks は loadTasksLocal() で既に設定済み
+                renderAll();
+            }
+            initialLoadDone=true;
+        },function(err){
+            console.error('Firestore listener error:',err);
+            initialLoadDone=true;
+        });
     }
     function stopFirestoreListener(){if(firestoreUnsubscribe){firestoreUnsubscribe();firestoreUnsubscribe=null;}}
 
+    // =============================================
     // Firestore: 個人チェック
+    // =============================================
     function saveCheckToFirestore(taskId,checked){
         if(!currentUser||!db)return Promise.resolve();
         var update={};
@@ -447,7 +126,9 @@
     }
     function stopChecksListener(){if(checksUnsubscribe){checksUnsubscribe();checksUnsubscribe=null;}}
 
-    // Firestore: チームメンバー＋全チェック状態（チェック通知含む）
+    // =============================================
+    // Firestore: チームメンバー＋チェック通知
+    // =============================================
     function startMembersListener(){
         if(!db)return;if(membersUnsubscribe)membersUnsubscribe();
         membersUnsubscribe=db.collection('users').onSnapshot(function(snapshot){
@@ -457,7 +138,6 @@
                 teamMembers[doc.id]=data.displayName||data.email||'不明';
                 if(data.checks)newAllChecks[doc.id]=data.checks;
             });
-            // チェック通知: 自分以外が新しくチェックしたら通知
             if(currentUser&&Notification.permission==='granted'){
                 Object.keys(newAllChecks).forEach(function(uid){
                     if(uid===currentUser.uid)return;
@@ -469,7 +149,6 @@
                             var name=teamMembers[uid]||'不明';
                             var title=task?task.title:'報告項目';
                             new Notification('\u2705 '+name+'さんが報告しました',{body:title,icon:'/icon-512.png',tag:'check-'+uid+'-'+tid});
-                            // アプリ内バナーにも表示
                             showCheckBanner(name,title);
                         }
                     });
@@ -482,11 +161,39 @@
     }
     function stopMembersListener(){if(membersUnsubscribe){membersUnsubscribe();membersUnsubscribe=null;}}
 
-    function migrateLocalToFirestore(){
-        if(!currentUser||!db||!currentGroupId)return Promise.resolve();
-        var l=localStorage.getItem('reports_'+currentGroupId);if(!l)return Promise.resolve();var p=JSON.parse(l);if(!p.length)return Promise.resolve();
-        return db.collection('reports').doc(currentGroupId).collection('items').doc('data').get().then(function(doc){if(!doc.exists){tasks=p;return saveToFirestore();}}).catch(function(e){console.error('Migration error:',e);});
+    // =============================================
+    // ✅ マイグレーション（全グループ対応）
+    // =============================================
+    function migrateAllLocalToFirestore(){
+        if(!currentUser||!db)return Promise.resolve();
+        var promises=[];
+        // 現在選択中のグループ
+        if(currentGroupId){
+            var l=localStorage.getItem('reports_'+currentGroupId);
+            if(l){try{var p=JSON.parse(l);if(p.length>0){
+                promises.push(db.collection('reports').doc(currentGroupId).collection('items').doc('data').get().then(function(doc){
+                    if(!doc.exists){tasks=p;return saveToFirestore();}
+                }));
+            }}catch(e){}}
+        }
+        // 他のグループもスキャン
+        for(var i=0;i<localStorage.length;i++){
+            var key=localStorage.key(i);
+            if(key&&key.indexOf('reports_')===0&&key!=='reports_'+currentGroupId){
+                var gid=key.replace('reports_','');
+                var raw=localStorage.getItem(key);
+                if(raw){try{var arr=JSON.parse(raw);if(arr.length>0){
+                    (function(g,data){
+                        promises.push(db.collection('reports').doc(g).collection('items').doc('data').get().then(function(doc){
+                            if(!doc.exists){return db.collection('reports').doc(g).collection('items').doc('data').set({tasks:data,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});}
+                        }));
+                    })(gid,arr);
+                }}catch(e){}}
+            }
+        }
+        return Promise.all(promises).catch(function(e){console.error('Migration error:',e);});
     }
+
     function persistTasks(){if(isSyncingFromFirestore)return;if(currentUser)saveToFirestore();else saveTasksLocal();}
 
     // CRUD
@@ -502,9 +209,7 @@
         if(selectedDayDate&&document.getElementById('dayTasksModal').classList.contains('active'))renderDayTasks(selectedDayDate);
     }
 
-    // =============================================
-    // 🔔 リマインダー機能
-    // =============================================
+    // リマインダー
     function getReminderTime(task){
         if(!task.reminder||!task.dueDate)return null;
         switch(task.reminder){
@@ -535,7 +240,6 @@
     }
     function startReminderChecker(){if(reminderCheckInterval)clearInterval(reminderCheckInterval);checkReminders();reminderCheckInterval=setInterval(checkReminders,60000);}
 
-    // チェック通知バナー
     function showCheckBanner(name,title){
         var b=document.getElementById('alertBanner'),tx=document.getElementById('alertBannerText');
         b.className='alert-banner visible level-check';
@@ -568,21 +272,27 @@
     function showSyncBannerIfNeeded(){if(!currentUser)return;if(!localStorage.getItem('syncBannerDismissed_report_'+currentUser.uid))document.getElementById('syncBanner').classList.add('visible');}
     function dismissSyncBanner(){document.getElementById('syncBanner').classList.remove('visible');if(currentUser)localStorage.setItem('syncBannerDismissed_report_'+currentUser.uid,'true');}
 
-    // グループUI
+    // =============================================
+    // ✅ グループ切替（データ保護付き）
+    // =============================================
     function renderGroupUI(){
-        // サイドバー
         var sl=document.getElementById('sidebarGroupList');
         sl.innerHTML=groups.map(function(g){return '<button class="group-chip'+(g.id===currentGroupId?' active':'')+'" onclick="switchGroup(\''+g.id+'\')">'+esc(g.name)+'</button>';}).join('');
-        // モバイルバー
         var mb=document.getElementById('mobileGroupBar');
         mb.innerHTML=groups.map(function(g){return '<button class="group-chip'+(g.id===currentGroupId?' active':'')+'" onclick="switchGroup(\''+g.id+'\')" style="flex-shrink:0">'+esc(g.name)+'</button>';}).join('');
     }
     function switchGroup(gid){
+        if(gid===currentGroupId)return;
+        // 現在のタスクを保存してから切替
+        saveTasksLocal();
         currentGroupId=gid;
         stopFirestoreListener();
+        // 新しいグループのローカルデータを読み込み
         loadTasksLocal();
+        renderGroupUI();
+        renderAll();
+        // Firestoreリスナーを再開（初回読み込み保護あり）
         if(currentUser)startFirestoreListener();
-        renderGroupUI();renderAll();
     }
     function openGroupModal(){
         if(!currentUser){alert('ログインしてください');return;}
@@ -636,7 +346,7 @@
             errEl.textContent=msgs[err.code]||'エラーが発生しました';errEl.classList.add('visible');
         }).finally(function(){hideLoading();});
     });
-    function doLogout(){if(!auth)return;showLoading('ログアウト中...');stopFirestoreListener();stopChecksListener();stopMembersListener();stopGroupsListener();auth.signOut().then(function(){currentUserName='';myChecks={};allUserChecks={};teamMembers={};groups=[];currentGroupId='';closeModal('authModal');}).catch(function(e){console.error(e);}).finally(function(){hideLoading();});}
+    function doLogout(){if(!auth)return;showLoading('ログアウト中...');stopFirestoreListener();stopChecksListener();stopMembersListener();stopGroupsListener();auth.signOut().then(function(){currentUserName='';myChecks={};allUserChecks={};teamMembers={};groups=[];currentGroupId='';tasks=[];closeModal('authModal');renderGroupUI();renderAll();}).catch(function(e){console.error(e);}).finally(function(){hideLoading();});}
     function showLoading(t){document.getElementById('loadingText').textContent=t||'処理中...';document.getElementById('loadingOverlay').classList.add('visible');}
     function hideLoading(){document.getElementById('loadingOverlay').classList.remove('visible');}
     function switchScreen(s){
@@ -735,12 +445,14 @@
     }
     function updateCalendar(){if(calendar)calendar.refetchEvents();}
 
-    // Service Worker登録
     function registerServiceWorker(){if(!('serviceWorker' in navigator))return Promise.resolve(null);return navigator.serviceWorker.register('/sw.js').catch(function(e){return null;});}
 
-    // 初期化
+    // =============================================
+    // ✅ 初期化（データ消失防止）
+    // =============================================
     document.addEventListener('DOMContentLoaded',function(){
-        loadTasksLocal();renderAll();initCalendar();registerServiceWorker();startReminderChecker();
+        // まずローカルデータを表示（グループ決定前でも安全）
+        renderAll();initCalendar();registerServiceWorker();startReminderChecker();
         if('Notification' in window&&Notification.permission==='default'){Notification.requestPermission();}
         if(isFirebaseReady&&auth){
             auth.onAuthStateChanged(function(user){
@@ -749,13 +461,22 @@
                     if(user.displayName){currentUserName=user.displayName;}
                     else{db.collection('users').doc(user.uid).get().then(function(doc){if(doc.exists&&doc.data().displayName)currentUserName=doc.data().displayName;}).catch(function(){});}
                     loadChecksLocal();
-                    // 初回スナップショット用にlastKnownChecksを初期化
                     lastKnownChecks={};
                     var settled=false;var tid=setTimeout(function(){if(!settled){settled=true;hideLoading();}},5000);
                     showLoading('同期中...');
                     startGroupsListener();
-                    migrateLocalToFirestore().then(function(){startFirestoreListener();startChecksListener();startMembersListener();showSyncBannerIfNeeded();}).catch(function(e){console.error('Sync error:',e);}).then(function(){if(!settled){settled=true;clearTimeout(tid);hideLoading();}});
-                }else{stopFirestoreListener();stopChecksListener();stopMembersListener();stopGroupsListener();document.getElementById('syncBanner').classList.remove('visible');currentUserName='';myChecks={};allUserChecks={};teamMembers={};groups=[];currentGroupId='';loadTasksLocal();renderAll();renderGroupUI();}
+                    // グループ決定後にマイグレーション＋リスナー開始
+                    var waitForGroup=setInterval(function(){
+                        if(currentGroupId){
+                            clearInterval(waitForGroup);
+                            migrateAllLocalToFirestore().then(function(){
+                                startFirestoreListener();startChecksListener();startMembersListener();showSyncBannerIfNeeded();
+                            }).catch(function(e){console.error('Sync error:',e);}).then(function(){if(!settled){settled=true;clearTimeout(tid);hideLoading();}});
+                        }
+                    },100);
+                    // 5秒でタイムアウト
+                    setTimeout(function(){clearInterval(waitForGroup);},4500);
+                }else{stopFirestoreListener();stopChecksListener();stopMembersListener();stopGroupsListener();document.getElementById('syncBanner').classList.remove('visible');currentUserName='';myChecks={};allUserChecks={};teamMembers={};groups=[];currentGroupId='';tasks=[];renderAll();renderGroupUI();}
                 updateAuthUI();
             });
         }
@@ -765,4 +486,3 @@
     </script>
 </body>
 </html>
-
