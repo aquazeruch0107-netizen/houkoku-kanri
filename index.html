@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>報告アプリ</title>
-    <link rel="apple-touch-icon" sizes="180x180" href="IMG_2009.png">
-    <link rel="icon" type="image/png" sizes="512x512" href="IMG_2009.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="icon-512.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#2e7d32">
     <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css' rel='stylesheet' />
@@ -22,6 +22,14 @@
         .sidebar-btn:hover{background:var(--bg);color:var(--text)}
         .sidebar-btn.active{background:var(--primary-light);color:var(--primary)}
         .sidebar-btn .nav-icon{font-size:1.2em;width:24px;text-align:center}
+        .sidebar-group-section{padding:10px;border-top:1px solid var(--border)}
+        .sidebar-group-label{font-size:.7em;font-weight:700;color:var(--text-sub);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+        .sidebar-group-list{display:flex;flex-direction:column;gap:3px;margin-bottom:8px}
+        .group-chip{display:flex;align-items:center;gap:6px;padding:8px 12px;border:1.5px solid var(--border);background:transparent;border-radius:8px;cursor:pointer;font-size:.8em;font-weight:600;color:var(--text-sub);transition:all .2s;width:100%;text-align:left}
+        .group-chip:hover{border-color:var(--primary);color:var(--primary)}
+        .group-chip.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+        .add-group-btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:8px;border:1.5px dashed var(--border);background:transparent;border-radius:8px;cursor:pointer;font-size:.8em;font-weight:600;color:var(--text-sub);transition:all .2s;width:100%}
+        .add-group-btn:hover{border-color:var(--primary);color:var(--primary)}
         .sidebar-footer{padding:12px;border-top:1px solid var(--border)}
         .sidebar-user-info{font-size:.75em;color:var(--text-sub);margin-bottom:8px;text-align:center;word-break:break-all}
         .sidebar-auth-btn{display:flex;align-items:center;gap:6px;padding:8px 12px;border:1.5px solid var(--border);background:transparent;border-radius:8px;cursor:pointer;font-size:.75em;font-weight:600;color:var(--text-sub);transition:all .2s;width:100%;justify-content:center}
@@ -32,13 +40,16 @@
         .mobile-header h1{font-size:1.15em;font-weight:700}
         .mobile-header-btn{position:absolute;top:calc(50% + env(safe-area-inset-top) / 2);transform:translateY(-50%);font-size:1.2em;opacity:.9;cursor:pointer;padding:4px 8px;border-radius:6px;background:rgba(255,255,255,.2);border:none;color:#fff;line-height:1}
         .mobile-header-btn:hover{background:rgba(255,255,255,.3)}
-        .mobile-header-btn.left{left:12px}
         .mobile-header-btn.right{right:12px;font-size:.7em}
+        .mobile-group-bar{display:flex;background:var(--surface);border-bottom:1px solid var(--border);padding:8px 12px;gap:6px;overflow-x:auto;flex-shrink:0;-webkit-overflow-scrolling:touch}
+        .mobile-group-bar::-webkit-scrollbar{display:none}
         .alert-banner{padding:10px 20px;text-align:center;font-size:.85em;font-weight:600;flex-shrink:0;display:none;cursor:pointer;align-items:center;justify-content:center;gap:8px}
         .alert-banner.visible{display:flex}
         .alert-banner.level-today{background:linear-gradient(135deg,#dc3545,#ff6b6b);color:#fff}
         .alert-banner.level-tomorrow{background:linear-gradient(135deg,#ff9a9e,#fecfef);color:#333}
         .alert-banner.level-soon{background:linear-gradient(135deg,#a1c4fd,#c2e9fb);color:#333}
+        .alert-banner.level-reminder{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff}
+        .alert-banner.level-check{background:linear-gradient(135deg,var(--primary),#4caf50);color:#fff}
         .alert-banner .close-alert{background:rgba(255,255,255,.3);border:none;color:inherit;border-radius:50%;width:22px;height:22px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
         .sync-banner{background:var(--primary);color:#fff;padding:10px 20px;text-align:center;font-size:.85em;font-weight:600;flex-shrink:0;display:none;align-items:center;justify-content:center;gap:8px}
         .sync-banner.visible{display:flex}
@@ -92,6 +103,7 @@
         .priority-medium{background:var(--warning);color:#000}
         .priority-low{background:var(--success);color:#fff}
         .reporter-badge{padding:2px 7px;border-radius:20px;font-size:.7em;font-weight:600;background:var(--primary-light);color:var(--primary)}
+        .reminder-badge{padding:2px 7px;border-radius:20px;font-size:.7em;font-weight:600;background:#ede7f6;color:#5e35b1}
         .task-actions{display:flex;gap:4px;flex-shrink:0;margin-top:2px}
         .task-actions .btn{padding:6px 10px;font-size:11px}
         .calendar-content{padding:8px;flex:1;overflow:hidden;display:flex;flex-direction:column}
@@ -158,6 +170,7 @@
         @media(min-width:769px){
             .sidebar{display:flex}
             .mobile-header{display:none}
+            .mobile-group-bar{display:none}
             .bottom-nav{display:none}
             .home-content{padding:32px 40px}
             .stats{gap:16px;margin-bottom:24px}
@@ -212,6 +225,11 @@
                 <button class="sidebar-btn" data-screen="list" onclick="switchScreen('list')"><span class="nav-icon">📝</span><span>報告一覧</span></button>
                 <button class="sidebar-btn" data-screen="calendar" onclick="switchScreen('calendar')"><span class="nav-icon">📅</span><span>カレンダー</span></button>
             </nav>
+            <div class="sidebar-group-section">
+                <div class="sidebar-group-label">グループ</div>
+                <div class="sidebar-group-list" id="sidebarGroupList"></div>
+                <button class="add-group-btn" onclick="openGroupModal()">+ グループを追加</button>
+            </div>
             <div class="sidebar-footer">
                 <div class="sidebar-user-info" id="sidebarUserInfo"></div>
                 <button class="sidebar-auth-btn" id="sidebarAuthBtn" onclick="openAuthModal()">🔒 ログイン</button>
@@ -222,6 +240,7 @@
                 <h1 id="mobileTitle">📊 報告アプリ</h1>
                 <button class="mobile-header-btn right" id="mobileAuthBtn" onclick="openAuthModal()">🔒 ログイン</button>
             </div>
+            <div class="mobile-group-bar" id="mobileGroupBar"></div>
             <div class="alert-banner" id="alertBanner"><span id="alertBannerText"></span><button class="close-alert" onclick="dismissAlert()">&times;</button></div>
             <div class="sync-banner" id="syncBanner"><span>☁️ チーム共有：データは全員で同期されます</span><button class="close-sync" onclick="dismissSyncBanner()">&times;</button></div>
             <div class="screen active" id="homeScreen">
@@ -254,6 +273,7 @@
             </nav>
         </div>
     </div>
+    <!-- タスクモーダル -->
     <div class="modal" id="taskModal">
         <div class="modal-content">
             <div class="modal-header"><span id="modalTitle">報告を追加</span><button class="modal-close-btn" onclick="closeModal('taskModal')">&times;</button></div>
@@ -265,12 +285,16 @@
                         <div class="form-group"><label for="taskDueDate">期限日</label><input type="date" id="taskDueDate" class="form-control"></div>
                         <div class="form-group"><label for="taskDueTime">期限時間</label><input type="time" id="taskDueTime" class="form-control"></div>
                     </div>
-                    <div class="form-group"><label for="taskPriority">優先度</label><select id="taskPriority" class="form-control"><option value="low">低</option><option value="medium" selected>中</option><option value="high">高</option></select></div>
+                    <div class="form-row">
+                        <div class="form-group"><label for="taskPriority">優先度</label><select id="taskPriority" class="form-control"><option value="low">低</option><option value="medium" selected>中</option><option value="high">高</option></select></div>
+                        <div class="form-group"><label for="taskReminder">🔔 リマインダー</label><select id="taskReminder" class="form-control"><option value="">なし</option><option value="same_0900">当日 9:00</option><option value="before_1h">1時間前</option><option value="before_30m">30分前</option><option value="prev_2100">前日 21:00</option></select></div>
+                    </div>
                     <div class="modal-actions"><button type="button" class="btn btn-secondary" onclick="closeModal('taskModal')">キャンセル</button><button type="submit" class="btn btn-primary">保存</button></div>
                 </form>
             </div>
         </div>
     </div>
+    <!-- 日別タスクモーダル -->
     <div class="modal" id="dayTasksModal">
         <div class="modal-content">
             <div class="modal-header"><span id="dayTasksTitle">📅 報告一覧</span><button class="modal-close-btn" onclick="closeModal('dayTasksModal')">&times;</button></div>
@@ -279,6 +303,19 @@
             <div class="day-task-footer"><button class="btn btn-primary" onclick="addTaskForDay()">+ 報告を追加</button></div>
         </div>
     </div>
+    <!-- グループ作成モーダル -->
+    <div class="modal" id="groupModal">
+        <div class="modal-content">
+            <div class="modal-header"><span>グループを追加</span><button class="modal-close-btn" onclick="closeModal('groupModal')">&times;</button></div>
+            <div class="modal-body">
+                <form id="groupForm">
+                    <div class="form-group"><label for="groupName">グループ名 *</label><input type="text" id="groupName" class="form-control" required placeholder="例: 営業部、開発チーム"></div>
+                    <div class="modal-actions"><button type="button" class="btn btn-secondary" onclick="closeModal('groupModal')">キャンセル</button><button type="submit" class="btn btn-primary">作成</button></div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- 認証モーダル -->
     <div class="modal" id="authModal">
         <div class="modal-content">
             <div class="modal-header"><span id="authModalTitle">ログイン</span><button class="modal-close-btn" onclick="closeModal('authModal')">&times;</button></div>
@@ -313,11 +350,20 @@
     var auth=null,db=null,isFirebaseReady=false;
     try{firebase.initializeApp(FIREBASE_CONFIG);auth=firebase.auth();db=firebase.firestore();isFirebaseReady=true;}catch(e){console.warn('Firebase init failed:',e);}
 
-    var tasks=[],myChecks={},teamMembers={},allUserChecks={};
-    var currentFilter='all',currentScreen='home';
+    // =============================================
+    // データ構造
+    // groups/{groupId}              ← グループ情報
+    // reports/{groupId}/items/data  ← グループ別報告項目
+    // users/{uid}                   ← プロフィール＋個人チェック
+    // =============================================
+    var tasks=[],myChecks={},teamMembers={},allUserChecks={},groups=[];
+    var currentGroupId='',currentFilter='all',currentScreen='home';
     var selectedDayDate=null,calendar,currentAuthTab='login';
-    var currentUser=null,currentUserName='',firestoreUnsubscribe=null,checksUnsubscribe=null,membersUnsubscribe=null;
+    var currentUser=null,currentUserName='';
+    var firestoreUnsubscribe=null,checksUnsubscribe=null,membersUnsubscribe=null,groupsUnsubscribe=null;
     var isSyncingFromFirestore=false;
+    var reminderCheckInterval=null;
+    var lastKnownChecks={}; // チェック通知用の前回スナップショット
     window._presetTime=null;
 
     function fmt(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
@@ -325,23 +371,20 @@
     function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
     function isMyCompleted(taskId){return !!myChecks[taskId];}
 
+    // 祝日計算
     var holidaysCache={};
     function getBaseHolidays(year){
-        var h={};
-        h[year+'-01-01']='元日';
+        var h={};h[year+'-01-01']='元日';
         var d1=new Date(year,0,1);while(d1.getDay()!==1)d1.setDate(d1.getDate()+1);d1.setDate(d1.getDate()+7);h[fmt(d1)]='成人の日';
         h[year+'-02-11']='建国記念の日';h[year+'-02-23']='天皇誕生日';
-        var v=Math.floor(20.8431+0.242194*(year-1980)-Math.floor((year-1980)/4));
-        h[year+'-03-'+String(v).padStart(2,'0')]='春分の日';
+        var v=Math.floor(20.8431+0.242194*(year-1980)-Math.floor((year-1980)/4));h[year+'-03-'+String(v).padStart(2,'0')]='春分の日';
         h[year+'-04-29']='昭和の日';h[year+'-05-03']='憲法記念日';h[year+'-05-04']='みどりの日';h[year+'-05-05']='こどもの日';
         var d2=new Date(year,6,1);while(d2.getDay()!==1)d2.setDate(d2.getDate()+1);d2.setDate(d2.getDate()+14);h[fmt(d2)]='海の日';
         h[year+'-08-11']='山の日';
         var d3=new Date(year,8,1);while(d3.getDay()!==1)d3.setDate(d3.getDate()+1);d3.setDate(d3.getDate()+14);h[fmt(d3)]='敬老の日';
-        var a=Math.floor(23.2488+0.242194*(year-1980)-Math.floor((year-1980)/4));
-        h[year+'-09-'+String(a).padStart(2,'0')]='秋分の日';
+        var a=Math.floor(23.2488+0.242194*(year-1980)-Math.floor((year-1980)/4));h[year+'-09-'+String(a).padStart(2,'0')]='秋分の日';
         var d4=new Date(year,9,1);while(d4.getDay()!==1)d4.setDate(d4.getDate()+1);d4.setDate(d4.getDate()+7);h[fmt(d4)]='スポーツの日';
-        h[year+'-11-03']='文化の日';h[year+'-11-23']='勤労感謝の日';
-        return h;
+        h[year+'-11-03']='文化の日';h[year+'-11-23']='勤労感謝の日';return h;
     }
     function getAllHolidays(){
         var y=new Date().getFullYear();var i,ds,d,n,ns,yr,s,e,p,ps,day;
@@ -351,23 +394,44 @@
         return holidaysCache;
     }
 
-    function saveTasksLocal(){localStorage.setItem('reports_shared',JSON.stringify(tasks));}
-    function loadTasksLocal(){var s=localStorage.getItem('reports_shared');if(s)tasks=JSON.parse(s);}
+    // LocalStorage
+    function saveTasksLocal(){localStorage.setItem('reports_'+currentGroupId,JSON.stringify(tasks));}
+    function loadTasksLocal(){var s=localStorage.getItem('reports_'+currentGroupId);if(s)tasks=JSON.parse(s);else tasks=[];}
     function saveChecksLocal(){if(currentUser)localStorage.setItem('checks_'+currentUser.uid,JSON.stringify(myChecks));}
-    function loadChecksLocal(){if(currentUser){var s=localStorage.getItem('checks_'+currentUser.uid);if(s)myChecks=JSON.parse(s);}}
+    function loadChecksLocal(){if(currentUser){var s=localStorage.getItem('checks_'+currentUser.uid);if(s)myChecks=JSON.parse(s);else myChecks={};}}
 
-    function saveToFirestore(){
+    // Firestore: グループ
+    function startGroupsListener(){
+        if(!db)return;if(groupsUnsubscribe)groupsUnsubscribe();
+        groupsUnsubscribe=db.collection('groups').orderBy('createdAt').onSnapshot(function(snapshot){
+            groups=[];snapshot.forEach(function(doc){groups.push(Object.assign({id:doc.id},doc.data()));});
+            if(!currentGroupId&&groups.length>0)currentGroupId=groups[0].id;
+            renderGroupUI();
+            // グループ切替時にタスクリスナーを再設定
+            if(currentGroupId&&currentUser){stopFirestoreListener();startFirestoreListener();loadTasksLocal();renderAll();}
+        },function(err){console.error('Groups listener error:',err);});
+    }
+    function stopGroupsListener(){if(groupsUnsubscribe){groupsUnsubscribe();groupsUnsubscribe=null;}}
+    function createGroup(name){
         if(!currentUser||!db)return Promise.resolve();
-        return db.collection('reports').doc('shared').collection('items').doc('data').set({tasks:tasks,updatedAt:firebase.firestore.FieldValue.serverTimestamp()}).catch(function(e){console.error('Firestore save error:',e);});
+        return db.collection('groups').add({name:name,createdBy:currentUser.uid,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+    }
+
+    // Firestore: タスク（グループ別）
+    function saveToFirestore(){
+        if(!currentUser||!db||!currentGroupId)return Promise.resolve();
+        return db.collection('reports').doc(currentGroupId).collection('items').doc('data').set({tasks:tasks,updatedAt:firebase.firestore.FieldValue.serverTimestamp()}).catch(function(e){console.error('Firestore save error:',e);});
     }
     function startFirestoreListener(){
-        if(!currentUser||!db)return;if(firestoreUnsubscribe)firestoreUnsubscribe();
-        firestoreUnsubscribe=db.collection('reports').doc('shared').collection('items').doc('data').onSnapshot(function(doc){
+        if(!currentUser||!db||!currentGroupId)return;if(firestoreUnsubscribe)firestoreUnsubscribe();
+        firestoreUnsubscribe=db.collection('reports').doc(currentGroupId).collection('items').doc('data').onSnapshot(function(doc){
             if(doc.exists&&doc.data()&&Array.isArray(doc.data().tasks)){isSyncingFromFirestore=true;tasks=doc.data().tasks;saveTasksLocal();renderAll();isSyncingFromFirestore=false;}
+            else{tasks=[];saveTasksLocal();renderAll();}
         },function(err){console.error('Firestore listener error:',err);});
     }
     function stopFirestoreListener(){if(firestoreUnsubscribe){firestoreUnsubscribe();firestoreUnsubscribe=null;}}
 
+    // Firestore: 個人チェック
     function saveCheckToFirestore(taskId,checked){
         if(!currentUser||!db)return Promise.resolve();
         var update={};
@@ -383,41 +447,106 @@
     }
     function stopChecksListener(){if(checksUnsubscribe){checksUnsubscribe();checksUnsubscribe=null;}}
 
-    // チームメンバー＋全員のチェック状態を取得
+    // Firestore: チームメンバー＋全チェック状態（チェック通知含む）
     function startMembersListener(){
         if(!db)return;if(membersUnsubscribe)membersUnsubscribe();
         membersUnsubscribe=db.collection('users').onSnapshot(function(snapshot){
-            teamMembers={};allUserChecks={};
+            teamMembers={};var newAllChecks={};
             snapshot.forEach(function(doc){
                 var data=doc.data();
                 teamMembers[doc.id]=data.displayName||data.email||'不明';
-                if(data.checks){allUserChecks[doc.id]=data.checks;}
+                if(data.checks)newAllChecks[doc.id]=data.checks;
             });
+            // チェック通知: 自分以外が新しくチェックしたら通知
+            if(currentUser&&Notification.permission==='granted'){
+                Object.keys(newAllChecks).forEach(function(uid){
+                    if(uid===currentUser.uid)return;
+                    var oldChecks=(lastKnownChecks[uid]||{});
+                    var newChecks=newAllChecks[uid]||{};
+                    Object.keys(newChecks).forEach(function(tid){
+                        if(!oldChecks[tid]&&newChecks[tid]){
+                            var task=tasks.find(function(t){return String(t.id)===String(tid);});
+                            var name=teamMembers[uid]||'不明';
+                            var title=task?task.title:'報告項目';
+                            new Notification('\u2705 '+name+'さんが報告しました',{body:title,icon:'/icon-512.png',tag:'check-'+uid+'-'+tid});
+                            // アプリ内バナーにも表示
+                            showCheckBanner(name,title);
+                        }
+                    });
+                });
+            }
+            lastKnownChecks=newAllChecks;
+            allUserChecks=newAllChecks;
             renderAll();
         },function(err){console.error('Members listener error:',err);});
     }
     function stopMembersListener(){if(membersUnsubscribe){membersUnsubscribe();membersUnsubscribe=null;}}
 
     function migrateLocalToFirestore(){
-        if(!currentUser||!db)return Promise.resolve();
-        var l=localStorage.getItem('reports_shared');if(!l)return Promise.resolve();var p=JSON.parse(l);if(!p.length)return Promise.resolve();
-        return db.collection('reports').doc('shared').collection('items').doc('data').get().then(function(doc){if(!doc.exists){tasks=p;return saveToFirestore();}}).catch(function(e){console.error('Migration error:',e);});
+        if(!currentUser||!db||!currentGroupId)return Promise.resolve();
+        var l=localStorage.getItem('reports_'+currentGroupId);if(!l)return Promise.resolve();var p=JSON.parse(l);if(!p.length)return Promise.resolve();
+        return db.collection('reports').doc(currentGroupId).collection('items').doc('data').get().then(function(doc){if(!doc.exists){tasks=p;return saveToFirestore();}}).catch(function(e){console.error('Migration error:',e);});
     }
-
     function persistTasks(){if(isSyncingFromFirestore)return;if(currentUser)saveToFirestore();else saveTasksLocal();}
 
+    // CRUD
     function addTask(t){t.id=Date.now();t.createdAt=new Date().toISOString();t.createdBy=currentUserName||'不明';tasks.push(t);persistTasks();renderAll();}
     function updateTask(id,u){var i=tasks.findIndex(function(t){return t.id===id;});if(i!==-1){tasks[i]=Object.assign({},tasks[i],u);persistTasks();renderAll();}}
     function deleteTask(id){if(confirm('削除しますか？')){tasks=tasks.filter(function(t){return t.id!==id;});persistTasks();renderAll();if(selectedDayDate&&document.getElementById('dayTasksModal').classList.contains('active'))renderDayTasks(selectedDayDate);}}
-
     function toggleTask(id){
         var nowChecked=!isMyCompleted(id);
-        myChecks[id]=nowChecked?new Date().toISOString():undefined;
-        if(!nowChecked)delete myChecks[id];
+        if(nowChecked){myChecks[id]=new Date().toISOString();}else{delete myChecks[id];}
         saveChecksLocal();
         if(currentUser)saveCheckToFirestore(id,nowChecked);
         renderAll();
         if(selectedDayDate&&document.getElementById('dayTasksModal').classList.contains('active'))renderDayTasks(selectedDayDate);
+    }
+
+    // =============================================
+    // 🔔 リマインダー機能
+    // =============================================
+    function getReminderTime(task){
+        if(!task.reminder||!task.dueDate)return null;
+        switch(task.reminder){
+            case 'same_0900':return new Date(task.dueDate+'T09:00:00');
+            case 'before_1h':if(!task.dueTime)return new Date(task.dueDate+'T09:00:00');var dt1=new Date(task.dueDate+'T'+task.dueTime+':00');dt1.setHours(dt1.getHours()-1);return dt1;
+            case 'before_30m':if(!task.dueTime)return new Date(task.dueDate+'T09:00:00');var dt2=new Date(task.dueDate+'T'+task.dueTime+':00');dt2.setMinutes(dt2.getMinutes()-30);return dt2;
+            case 'prev_2100':var prev=new Date(task.dueDate);prev.setDate(prev.getDate()-1);return new Date(fmt(prev)+'T21:00:00');
+            default:return null;
+        }
+    }
+    function getReminderLabel(r){return{'same_0900':'当日 9:00','before_1h':'1時間前','before_30m':'30分前','prev_2100':'前日 21:00'}[r]||'';}
+    function checkReminders(){
+        if(Notification.permission!=='granted')return;
+        var now=new Date();
+        var notified=JSON.parse(localStorage.getItem('notifiedReminders_report')||'{}');
+        tasks.forEach(function(t){
+            if(isMyCompleted(t.id))return;
+            var rt=getReminderTime(t);if(!rt)return;
+            var key='rem_'+t.id;
+            if(notified[key])return;
+            if(now>=rt&&(now-rt)<86400000){
+                notified[key]=true;
+                new Notification('\ud83d\udd14 リマインダー',{body:t.title+'\n'+(t.dueTime?'期限: '+t.dueTime:'期限: 今日'),icon:'/icon-512.png',tag:'reminder-'+t.id});
+                showReminderBanner(t);
+            }
+        });
+        localStorage.setItem('notifiedReminders_report',JSON.stringify(notified));
+    }
+    function startReminderChecker(){if(reminderCheckInterval)clearInterval(reminderCheckInterval);checkReminders();reminderCheckInterval=setInterval(checkReminders,60000);}
+
+    // チェック通知バナー
+    function showCheckBanner(name,title){
+        var b=document.getElementById('alertBanner'),tx=document.getElementById('alertBannerText');
+        b.className='alert-banner visible level-check';
+        tx.textContent='\u2705 '+name+'さんが「'+title+'」を報告しました';
+        b.onclick=function(e){if(e.target.classList.contains('close-alert'))return;switchScreen('home');};
+    }
+    function showReminderBanner(t){
+        var b=document.getElementById('alertBanner'),tx=document.getElementById('alertBannerText');
+        b.className='alert-banner visible level-reminder';
+        tx.textContent='\ud83d\udd14 リマインダー: '+t.title+(t.dueTime?' ('+t.dueTime+')':'');
+        b.onclick=function(e){if(e.target.classList.contains('close-alert'))return;switchScreen('list');setFilter('pending');};
     }
 
     function renderAll(){renderTasks();renderHome();updateStats();updateCalendar();checkAlerts();}
@@ -429,6 +558,7 @@
         var mT=tasks.filter(function(t){return !isMyCompleted(t.id)&&t.dueDate===tms;});
         var sT=tasks.filter(function(t){return !isMyCompleted(t.id)&&t.dueDate>tms&&t.dueDate<=i3s;});
         var b=document.getElementById('alertBanner'),tx=document.getElementById('alertBannerText');
+        if(b.classList.contains('level-check')||b.classList.contains('level-reminder'))return;
         if(tT.length>0&&dis!==ts+'-today'){b.className='alert-banner visible level-today';tx.textContent='\u26a0\ufe0f 今日が期限: '+tT.map(function(t){return t.title;}).slice(0,3).join('、')+(tT.length>3?' 他'+(tT.length-3)+'件':'');b.onclick=function(e){if(e.target.classList.contains('close-alert'))return;switchScreen('list');setFilter('pending');};}
         else if(mT.length>0&&dis!==ts+'-tomorrow'){b.className='alert-banner visible level-tomorrow';tx.textContent='\ud83d\udd14 明日が期限: '+mT.map(function(t){return t.title;}).slice(0,3).join('、')+(mT.length>3?' 他'+(mT.length-3)+'件':'');b.onclick=function(e){if(e.target.classList.contains('close-alert'))return;switchScreen('list');setFilter('pending');};}
         else if(sT.length>0&&dis!==ts+'-soon'){b.className='alert-banner visible level-soon';tx.textContent='\ud83d\udccb 3日後までに期限: '+sT.map(function(t){return t.title;}).slice(0,3).join('、')+(sT.length>3?' 他'+(sT.length-3)+'件':'');b.onclick=function(e){if(e.target.classList.contains('close-alert'))return;switchScreen('list');setFilter('pending');};}
@@ -438,6 +568,34 @@
     function showSyncBannerIfNeeded(){if(!currentUser)return;if(!localStorage.getItem('syncBannerDismissed_report_'+currentUser.uid))document.getElementById('syncBanner').classList.add('visible');}
     function dismissSyncBanner(){document.getElementById('syncBanner').classList.remove('visible');if(currentUser)localStorage.setItem('syncBannerDismissed_report_'+currentUser.uid,'true');}
 
+    // グループUI
+    function renderGroupUI(){
+        // サイドバー
+        var sl=document.getElementById('sidebarGroupList');
+        sl.innerHTML=groups.map(function(g){return '<button class="group-chip'+(g.id===currentGroupId?' active':'')+'" onclick="switchGroup(\''+g.id+'\')">'+esc(g.name)+'</button>';}).join('');
+        // モバイルバー
+        var mb=document.getElementById('mobileGroupBar');
+        mb.innerHTML=groups.map(function(g){return '<button class="group-chip'+(g.id===currentGroupId?' active':'')+'" onclick="switchGroup(\''+g.id+'\')" style="flex-shrink:0">'+esc(g.name)+'</button>';}).join('');
+    }
+    function switchGroup(gid){
+        currentGroupId=gid;
+        stopFirestoreListener();
+        loadTasksLocal();
+        if(currentUser)startFirestoreListener();
+        renderGroupUI();renderAll();
+    }
+    function openGroupModal(){
+        if(!currentUser){alert('ログインしてください');return;}
+        document.getElementById('groupName').value='';
+        openModal('groupModal');
+    }
+    document.getElementById('groupForm').addEventListener('submit',function(e){
+        e.preventDefault();var name=document.getElementById('groupName').value.trim();
+        if(!name)return;
+        createGroup(name).then(function(){closeModal('groupModal');}).catch(function(err){alert('作成に失敗しました');});
+    });
+
+    // 認証UI
     function updateAuthUI(){
         var sb=document.getElementById('sidebarAuthBtn');var mb=document.getElementById('mobileAuthBtn');var ui=document.getElementById('sidebarUserInfo');
         if(currentUser){sb.textContent='\u2601\ufe0f 同期中';sb.classList.add('logged-in');mb.textContent='\u2601\ufe0f 同期中';mb.style.background='rgba(40,167,69,.3)';ui.textContent='\ud83d\udc64 '+(currentUserName||currentUser.email);}
@@ -478,63 +636,47 @@
             errEl.textContent=msgs[err.code]||'エラーが発生しました';errEl.classList.add('visible');
         }).finally(function(){hideLoading();});
     });
-    function doLogout(){if(!auth)return;showLoading('ログアウト中...');stopFirestoreListener();stopChecksListener();stopMembersListener();auth.signOut().then(function(){currentUserName='';myChecks={};allUserChecks={};teamMembers={};closeModal('authModal');}).catch(function(e){console.error(e);}).finally(function(){hideLoading();});}
+    function doLogout(){if(!auth)return;showLoading('ログアウト中...');stopFirestoreListener();stopChecksListener();stopMembersListener();stopGroupsListener();auth.signOut().then(function(){currentUserName='';myChecks={};allUserChecks={};teamMembers={};groups=[];currentGroupId='';closeModal('authModal');}).catch(function(e){console.error(e);}).finally(function(){hideLoading();});}
     function showLoading(t){document.getElementById('loadingText').textContent=t||'処理中...';document.getElementById('loadingOverlay').classList.add('visible');}
     function hideLoading(){document.getElementById('loadingOverlay').classList.remove('visible');}
     function switchScreen(s){
         currentScreen=s;document.querySelectorAll('.screen').forEach(function(el){el.classList.remove('active');});document.getElementById(s+'Screen').classList.add('active');
-        document.querySelectorAll('.nav-btn,.sidebar-btn').forEach(function(b){b.classList.toggle('active',b.dataset.screen===s);});
+        document.querySelectorAll('.nav-btn,.sidebar-btn[data-screen]').forEach(function(b){b.classList.toggle('active',b.dataset.screen===s);});
         document.getElementById('mobileTitle').textContent={home:'\ud83d\udcca 報告アプリ',list:'\ud83d\udcdd 報告一覧',calendar:'\ud83d\udcc5 カレンダー'}[s];
         if(s==='calendar'&&calendar)setTimeout(function(){calendar.updateSize();},50);
     }
 
-    // =============================================
-    // ホーム: 完了した人の名前のみ表示
-    // =============================================
+    // ホーム
     function getDoneMemberNames(taskId){
         var names=[];
-        Object.keys(allUserChecks).forEach(function(uid){
-            if(allUserChecks[uid][taskId]){
-                names.push(teamMembers[uid]||'不明');
-            }
-        });
+        Object.keys(allUserChecks).forEach(function(uid){if(allUserChecks[uid][taskId])names.push(teamMembers[uid]||'不明');});
         return names;
     }
-
     function renderHome(){
         var myPending=tasks.filter(function(t){return !isMyCompleted(t.id);});
         var myDone=tasks.filter(function(t){return isMyCompleted(t.id);});
         document.getElementById('pendingCount').textContent=myPending.length;
         document.getElementById('completedCount').textContent=myDone.length;
         document.getElementById('totalCount').textContent=tasks.length;
-
         var sorted=tasks.slice().sort(function(a,b){if(!a.dueDate)return 1;if(!b.dueDate)return -1;return new Date(a.dueDate+'T'+(a.dueTime||'23:59'))-new Date(b.dueDate+'T'+(b.dueTime||'23:59'));});
         var el=document.getElementById('teamStatusList');
-        if(!sorted.length){el.innerHTML='<div class="empty-message">報告項目がありません</div>';
-        }else{
-            el.innerHTML=sorted.map(function(t){
-                var dt=t.dueDate?fmtJP(t.dueDate)+(t.dueTime?' '+t.dueTime:''):'期限なし';
-                var doneNames=getDoneMemberNames(t.id);
-                var membersHtml;
-                if(doneNames.length>0){
-                    membersHtml=doneNames.map(function(name){return '<span class="check-member-done">\u2705 '+esc(name)+'</span>';}).join('');
-                }else{
-                    membersHtml='<span class="check-none">―</span>';
-                }
-                return '<div class="report-status-item"><div class="report-status-title">'+esc(t.title)+'</div><div class="report-status-meta">\ud83d\udcc5 '+dt+' ・ 作成: '+esc(t.createdBy||'不明')+'</div><div class="check-members">'+membersHtml+'</div></div>';
-            }).join('');
-        }
-
+        if(!sorted.length){el.innerHTML='<div class="empty-message">報告項目がありません</div>';}
+        else{el.innerHTML=sorted.map(function(t){
+            var dt=t.dueDate?fmtJP(t.dueDate)+(t.dueTime?' '+t.dueTime:''):'期限なし';
+            var doneNames=getDoneMemberNames(t.id);
+            var membersHtml=doneNames.length>0?doneNames.map(function(name){return '<span class="check-member-done">\u2705 '+esc(name)+'</span>';}).join(''):'<span class="check-none">\u2015</span>';
+            return '<div class="report-status-item"><div class="report-status-title">'+esc(t.title)+'</div><div class="report-status-meta">\ud83d\udcc5 '+dt+' ・ 作成: '+esc(t.createdBy||'不明')+'</div><div class="check-members">'+membersHtml+'</div></div>';
+        }).join('');}
         var today=new Date();today.setHours(0,0,0,0);var tmr=new Date(today);tmr.setDate(tmr.getDate()+1);
         var u=tasks.filter(function(t){if(isMyCompleted(t.id)||!t.dueDate)return false;var d=new Date(t.dueDate);d.setHours(0,0,0,0);return d<=tmr;}).sort(function(a,b){return new Date(a.dueDate)-new Date(b.dueDate);});
         document.getElementById('urgentTasksList').innerHTML=u.length?u.map(function(t){
-            var ts=fmt(new Date());var tms=fmt(tmr);
-            var c='today-task-item';if(t.dueDate<ts)c+=' overdue';else if(t.dueDate===tms)c+=' tomorrow';
+            var ts=fmt(new Date());var tms=fmt(tmr);var c='today-task-item';if(t.dueDate<ts)c+=' overdue';else if(t.dueDate===tms)c+=' tomorrow';
             var p={low:'低',medium:'中',high:'高'}[t.priority];var dl=t.dueDate===ts?'今日':t.dueDate===tms?'明日':fmtJP(t.dueDate);
             return '<div class="'+c+'"><div><div class="today-task-title">'+esc(t.title)+'</div><div style="font-size:.75em;color:var(--text-sub);margin-top:2px;">'+dl+(t.dueTime?' ・ '+t.dueTime:'')+'</div></div><div class="today-task-info"><span class="priority-badge priority-'+t.priority+'">'+p+'</span></div></div>';
         }).join(''):'<div class="empty-message">\u2705 緊急の未報告はありません</div>';
     }
 
+    // リスト
     function renderTasks(){
         var el=document.getElementById('taskList');var f=tasks;
         if(currentFilter==='pending')f=tasks.filter(function(t){return !isMyCompleted(t.id);});
@@ -543,26 +685,23 @@
         if(!f.length){el.innerHTML='<p class="empty-message">報告がありません</p>';return;}
         var today=new Date();today.setHours(0,0,0,0);var tmr=new Date(today);tmr.setDate(tmr.getDate()+1);
         el.innerHTML=f.map(function(t){
-            var myDone=isMyCompleted(t.id);
-            var c='task-item';if(myDone)c+=' my-completed';
+            var myDone=isMyCompleted(t.id);var c='task-item';if(myDone)c+=' my-completed';
             if(t.dueDate&&!myDone){var d=new Date(t.dueDate);d.setHours(0,0,0,0);if(d<today)c+=' overdue';else if(d.getTime()===tmr.getTime())c+=' tomorrow';}
-            var p={low:'低',medium:'中',high:'高'}[t.priority];
-            var dt=t.dueDate?fmtJP(t.dueDate)+(t.dueTime?' '+t.dueTime:''):'期限なし';
-            return '<div class="'+c+'"><input type="checkbox" class="task-checkbox" '+(myDone?'checked':'')+' onchange="toggleTask('+t.id+')"><div class="task-content"><div class="task-title">'+esc(t.title)+'</div><div class="task-meta"><span class="priority-badge priority-'+t.priority+'">'+p+'</span><span>\ud83d\udcc5 '+dt+'</span><span class="reporter-badge">作成: '+esc(t.createdBy||'不明')+'</span></div></div><div class="task-actions"><button class="btn btn-secondary" onclick="openEditModal('+t.id+')">編集</button><button class="btn btn-danger" onclick="deleteTask('+t.id+')">削除</button></div></div>';
+            var p={low:'低',medium:'中',high:'高'}[t.priority];var dt=t.dueDate?fmtJP(t.dueDate)+(t.dueTime?' '+t.dueTime:''):'期限なし';
+            var rmHtml=t.reminder?'<span class="reminder-badge">\ud83d\udd14 '+getReminderLabel(t.reminder)+'</span>':'';
+            return '<div class="'+c+'"><input type="checkbox" class="task-checkbox" '+(myDone?'checked':'')+' onchange="toggleTask('+t.id+')"><div class="task-content"><div class="task-title">'+esc(t.title)+'</div><div class="task-meta"><span class="priority-badge priority-'+t.priority+'">'+p+'</span>'+rmHtml+'<span>\ud83d\udcc5 '+dt+'</span><span class="reporter-badge">作成: '+esc(t.createdBy||'不明')+'</span></div></div><div class="task-actions"><button class="btn btn-secondary" onclick="openEditModal('+t.id+')">編集</button><button class="btn btn-danger" onclick="deleteTask('+t.id+')">削除</button></div></div>';
         }).join('');
     }
     function updateStats(){
-        var myPending=tasks.filter(function(t){return !isMyCompleted(t.id);});
-        var myDone=tasks.filter(function(t){return isMyCompleted(t.id);});
-        document.getElementById('pendingCount').textContent=myPending.length;
-        document.getElementById('completedCount').textContent=myDone.length;
+        document.getElementById('pendingCount').textContent=tasks.filter(function(t){return !isMyCompleted(t.id);}).length;
+        document.getElementById('completedCount').textContent=tasks.filter(function(t){return isMyCompleted(t.id);}).length;
         document.getElementById('totalCount').textContent=tasks.length;
     }
     function setFilter(f){currentFilter=f;document.querySelectorAll('.filter-btn').forEach(function(b){b.classList.toggle('active',b.dataset.filter===f);});renderTasks();}
     function openModal(id){document.getElementById(id).classList.add('active');}
     function closeModal(id){document.getElementById(id).classList.remove('active');}
-    function openAddModal(d,t){document.getElementById('modalTitle').textContent='報告を追加';document.getElementById('taskId').value='';document.getElementById('taskTitle').value='';document.getElementById('taskDueDate').value=d||'';document.getElementById('taskDueTime').value=t||'';document.getElementById('taskPriority').value='medium';openModal('taskModal');setTimeout(function(){document.getElementById('taskTitle').focus();},100);}
-    function openEditModal(id){var t=tasks.find(function(x){return x.id===id;});if(!t)return;document.getElementById('modalTitle').textContent='報告を編集';document.getElementById('taskId').value=t.id;document.getElementById('taskTitle').value=t.title;document.getElementById('taskDueDate').value=t.dueDate||'';document.getElementById('taskDueTime').value=t.dueTime||'';document.getElementById('taskPriority').value=t.priority;openModal('taskModal');}
+    function openAddModal(d,t){document.getElementById('modalTitle').textContent='報告を追加';document.getElementById('taskId').value='';document.getElementById('taskTitle').value='';document.getElementById('taskDueDate').value=d||'';document.getElementById('taskDueTime').value=t||'';document.getElementById('taskPriority').value='medium';document.getElementById('taskReminder').value='';openModal('taskModal');setTimeout(function(){document.getElementById('taskTitle').focus();},100);}
+    function openEditModal(id){var t=tasks.find(function(x){return x.id===id;});if(!t)return;document.getElementById('modalTitle').textContent='報告を編集';document.getElementById('taskId').value=t.id;document.getElementById('taskTitle').value=t.title;document.getElementById('taskDueDate').value=t.dueDate||'';document.getElementById('taskDueTime').value=t.dueTime||'';document.getElementById('taskPriority').value=t.priority;document.getElementById('taskReminder').value=t.reminder||'';openModal('taskModal');}
     function openDayTasksModal(ds){selectedDayDate=ds;document.getElementById('dayTasksTitle').innerHTML='\ud83d\udcc5 報告一覧 <span class="date-badge">'+fmtJP(ds)+'</span>';document.getElementById('dayTasksDateLabel').textContent='';renderDayTasks(ds);openModal('dayTasksModal');}
     function renderDayTasks(ds){
         var items=tasks.filter(function(t){return t.dueDate===ds;}).sort(function(a,b){var ac=isMyCompleted(a.id)?1:0;var bc=isMyCompleted(b.id)?1:0;if(ac!==bc)return ac-bc;return(a.dueTime||'99:99').localeCompare(b.dueTime||'99:99');});
@@ -570,17 +709,18 @@
         if(!items.length){el.innerHTML='<div class="day-task-empty"><div class="empty-icon">\ud83d\udced</div><div>この日の報告はありません</div><div style="font-size:.8em;margin-top:4px;color:#adb5bd;">下のボタンから追加できます</div></div>';return;}
         var ts=fmt(new Date());
         el.innerHTML=items.map(function(t){
-            var myDone=isMyCompleted(t.id);
-            var c='day-task-item';if(myDone)c+=' my-completed';if(!myDone&&t.dueDate<ts)c+=' overdue';
+            var myDone=isMyCompleted(t.id);var c='day-task-item';if(myDone)c+=' my-completed';if(!myDone&&t.dueDate<ts)c+=' overdue';
             return '<div class="'+c+'" onclick="openEditModal('+t.id+')"><input type="checkbox" class="task-checkbox" '+(myDone?'checked':'')+' onclick="event.stopPropagation();toggleTask('+t.id+')"><div class="day-task-time">'+(t.dueTime||'終日')+'</div><div class="day-task-title">'+esc(t.title)+'</div><span class="priority-badge priority-'+t.priority+'">'+({low:'低',medium:'中',high:'高'}[t.priority])+'</span></div>';
         }).join('');
     }
     function addTaskForDay(){if(!selectedDayDate)return;var pt=window._presetTime;closeModal('dayTasksModal');openAddModal(selectedDayDate,pt||null);window._presetTime=null;}
     document.getElementById('taskForm').addEventListener('submit',function(e){
         e.preventDefault();var id=document.getElementById('taskId').value;
-        var t={title:document.getElementById('taskTitle').value.trim(),dueDate:document.getElementById('taskDueDate').value,dueTime:document.getElementById('taskDueTime').value,priority:document.getElementById('taskPriority').value};
+        var t={title:document.getElementById('taskTitle').value.trim(),dueDate:document.getElementById('taskDueDate').value,dueTime:document.getElementById('taskDueTime').value,priority:document.getElementById('taskPriority').value,reminder:document.getElementById('taskReminder').value};
         if(!t.title)return;if(id)updateTask(parseInt(id),t);else addTask(t);closeModal('taskModal');
     });
+
+    // カレンダー
     function initCalendar(){
         getAllHolidays();
         calendar=new FullCalendar.Calendar(document.getElementById('calendar'),{
@@ -595,8 +735,13 @@
     }
     function updateCalendar(){if(calendar)calendar.refetchEvents();}
 
+    // Service Worker登録
+    function registerServiceWorker(){if(!('serviceWorker' in navigator))return Promise.resolve(null);return navigator.serviceWorker.register('/sw.js').catch(function(e){return null;});}
+
+    // 初期化
     document.addEventListener('DOMContentLoaded',function(){
-        loadTasksLocal();renderAll();initCalendar();
+        loadTasksLocal();renderAll();initCalendar();registerServiceWorker();startReminderChecker();
+        if('Notification' in window&&Notification.permission==='default'){Notification.requestPermission();}
         if(isFirebaseReady&&auth){
             auth.onAuthStateChanged(function(user){
                 currentUser=user;
@@ -604,10 +749,13 @@
                     if(user.displayName){currentUserName=user.displayName;}
                     else{db.collection('users').doc(user.uid).get().then(function(doc){if(doc.exists&&doc.data().displayName)currentUserName=doc.data().displayName;}).catch(function(){});}
                     loadChecksLocal();
+                    // 初回スナップショット用にlastKnownChecksを初期化
+                    lastKnownChecks={};
                     var settled=false;var tid=setTimeout(function(){if(!settled){settled=true;hideLoading();}},5000);
                     showLoading('同期中...');
+                    startGroupsListener();
                     migrateLocalToFirestore().then(function(){startFirestoreListener();startChecksListener();startMembersListener();showSyncBannerIfNeeded();}).catch(function(e){console.error('Sync error:',e);}).then(function(){if(!settled){settled=true;clearTimeout(tid);hideLoading();}});
-                }else{stopFirestoreListener();stopChecksListener();stopMembersListener();document.getElementById('syncBanner').classList.remove('visible');currentUserName='';myChecks={};allUserChecks={};teamMembers={};loadTasksLocal();renderAll();}
+                }else{stopFirestoreListener();stopChecksListener();stopMembersListener();stopGroupsListener();document.getElementById('syncBanner').classList.remove('visible');currentUserName='';myChecks={};allUserChecks={};teamMembers={};groups=[];currentGroupId='';loadTasksLocal();renderAll();renderGroupUI();}
                 updateAuthUI();
             });
         }
